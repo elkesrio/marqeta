@@ -21,7 +21,7 @@ describe Marqeta::Card do
       it 'posts the pan to an ApiCaller' do
         api_caller = instance_double(Marqeta::ApiCaller)
         allow(Marqeta::ApiCaller).to receive(:new).and_return(api_caller)
-        expect(api_caller).to receive(:post).with(pan: pan).and_return({})
+        expect(api_caller).to receive(:post).with(pan:).and_return({})
 
         Marqeta::Card.from_pan(pan)
       end
@@ -32,15 +32,31 @@ describe Marqeta::Card do
         expect(card.token).to eq(card_token)
       end
     end
+
+    describe '.update_state' do
+      subject { described_class.update_state(card_token, payload) }
+
+      let(:api_caller) { instance_double(Marqeta::ApiCaller, post: response) }
+      let(:payload) { { state: 'ACTIVE' } }
+      let(:response) { { token: double } }
+
+      before do
+        allow(Marqeta::ApiCaller).to receive(:new).and_return(api_caller)
+      end
+
+      it 'creates an ApiCaller with the cardtransitions endpoint' do
+        expect(subject).to have_attributes(token: response[:token])
+      end
+    end
   end
 
   describe 'instance methods' do
     subject(:card) do
       Marqeta::Card.new(
         token: card_token,
-        state: state,
-        pin_is_set: pin_is_set,
-        expiration_time: expiration_time
+        state:,
+        pin_is_set:,
+        expiration_time:
       )
     end
 
@@ -139,7 +155,7 @@ describe Marqeta::Card do
 
     describe '#create_client_access' do
       it "creates a ClientAccess resource passing in the card's token" do
-        expect(Marqeta::ClientAccess).to receive(:api_create).with(card_token: card_token)
+        expect(Marqeta::ClientAccess).to receive(:api_create).with(card_token:)
         card.create_client_access
       end
     end
